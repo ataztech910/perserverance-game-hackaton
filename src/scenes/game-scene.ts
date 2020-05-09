@@ -2,21 +2,44 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: false,
     visible: false,
     key: 'Game',
-  };
+    physics: {
+        matter: {
+            debug: true
+        }
+    }
+    };
   
 export class GameScene extends Phaser.Scene {
-    private square: Phaser.GameObjects.Rectangle & { body: Phaser.Physics.Arcade.Body };
-
+    controls;
     constructor() {
         super(sceneConfig);
     }
-
+    public preload() {
+        console.log('preloading');
+        this.load.image('tileset', '/assets/tileMap/tilesheet.png');
+        this.load.tilemapTiledJSON('map', '/assets/tileMap/MarsThePlanet.json');
+    }
     public create() {
-        this.square = this.add.rectangle(400, 400, 100, 100, 0xFFFFFF) as any;
-        this.physics.add.existing(this.square);
+        const map = this.make.tilemap({key: 'map'});
+        const tileset = map.addTilesetImage('tileset', 'tileset');
+        const ground = map.createStaticLayer('ground', tileset, 0, 0);
+        const rocks = map.createStaticLayer('rocks', tileset, 0, 0);
+        const camera = this.cameras.main;
+
+        // Set up the arrows to control the camera
+        const cursors = this.input.keyboard.createCursorKeys();
+        this.controls = new Phaser.Cameras.Controls.FixedKeyControl({
+            camera: camera,
+            left: cursors.left,
+            right: cursors.right,
+            up: cursors.up,
+            down: cursors.down,
+            speed: 0.5
+        });
     }
 
-    public update() {
+    public update(time, delta) {
         // TODO
+        this.controls.update(delta);
     }
 }
