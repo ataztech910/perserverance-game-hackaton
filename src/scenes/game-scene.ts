@@ -1,3 +1,5 @@
+import {UserState} from "./UserState";
+
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: true,
     visible: true,
@@ -10,6 +12,9 @@ export class GameScene extends Phaser.Scene {
     car = null;
     forwardPressed = false;
     backPressed = false;
+    coins = null;
+    coinsSound = null;
+    userState: UserState;
     constructor() {
         super(sceneConfig);
     }
@@ -17,8 +22,15 @@ export class GameScene extends Phaser.Scene {
         this.load.image('tileset', '/assets/tileMap/tilesheet.png');
         this.load.tilemapTiledJSON('map', '/assets/tileMap/MarsThePlanet.json');
         this.load.image('car','assets/car.png');
+        this.load.spritesheet('coin', 'assets/coins.png', { frameWidth: 32, frameHeight: 32 });
+        this.load.audio('coin-sound', ['assets/audio/coin.wav', 'assets/audio/bg.ogg']);
     }
     public create() {
+        this.userState = {
+            coins: 0,
+            health: 100,
+            signalStatus: 30
+        }
         const map = this.make.tilemap({key: 'map'});
         const tileset = map.addTilesetImage('tileset', 'tileset');
         const ground = map.createStaticLayer('ground', tileset, 0, 0);
@@ -29,6 +41,7 @@ export class GameScene extends Phaser.Scene {
         this.physics.world.bounds.height = map.heightInPixels;
         this.car = this.physics.add.sprite(570,100,'car');
         this.car.body.rotation = 1;
+        this.car.setCollideWorldBounds(true);
 
         const camera = this.cameras.main;
         camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -38,9 +51,32 @@ export class GameScene extends Phaser.Scene {
         this.physics.add.collider(this.car, rocks);
         // Set up the arrows to control the camera
         this.controls = this.input.keyboard.createCursorKeys();
+
+        this.anims.create({
+            key: 'spin',
+            frames: this.anims.generateFrameNumbers('coin', { start: 0, end: 6 }),
+            frameRate: 16,
+            repeat: -1
+        });
+
+        this.coins = map.createFromObjects('coin-object-layer', 1961, { key: 'coin' }, this);
+        this.anims.play('spin', this.coins);
+        this.coins.forEach(coin => {
+            this.physics.world.enable(coin);
+        })
+       this.coinsSound = this.sound.add('coin-sound');
+    }
+
+    hitTheCoin(player, coin) {
+        console.log({player, coin});
+        this.coinsSound.play();
+        this.userState.coins ++;
+        coin.destroy();
+        console.log(this.userState);
     }
 
     public update(time, delta) {
+        this.physics.collide(this.car, this.coins, this.hitTheCoin, null, this);
         /*Update Velocity*/
         if(this.velocity <= 0) {
             this.forwardPressed = false;
@@ -51,7 +87,6 @@ export class GameScene extends Phaser.Scene {
         if (this.controls.down.isUp && this.backPressed && this.velocity <= -1) {
             this.velocity += 5;
         }
-
         if (this.controls.up.isDown && this.velocity <= 400) {
             this.velocity += 5;
             this.forwardPressed = true;
@@ -73,5 +108,8 @@ export class GameScene extends Phaser.Scene {
         else{
             this.car.body.angularVelocity = 0;
         }
+
     }
+
+
 }
