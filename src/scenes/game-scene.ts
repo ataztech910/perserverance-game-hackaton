@@ -36,6 +36,7 @@ export class GameScene extends Phaser.Scene {
         const tileset = map.addTilesetImage('tileset', 'tileset');
         const ground = map.createStaticLayer('ground', tileset, 0, 0);
         const rocks = map.createStaticLayer('rocks', tileset, 0, 0);
+        const road = map.createStaticLayer('road', tileset, 0, 0);
         rocks.setCollisionByExclusion([-1]);
 
         this.physics.world.bounds.width = map.widthInPixels;
