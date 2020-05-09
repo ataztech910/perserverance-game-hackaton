@@ -3,7 +3,7 @@ import {GameScene} from "./scenes/game-scene";
 export const gameConfig: Phaser.Types.Core.GameConfig = {
     title: 'Sample',
    
-    type: Phaser.AUTO,
+    type: Phaser.WEBGL,
    
     scene: GameScene,
 
@@ -20,5 +20,5 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     },
    
     parent: 'game',
-    backgroundColor: '#000000',
+    backgroundColor: '#fff',
   };
