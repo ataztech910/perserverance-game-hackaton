@@ -18,6 +18,7 @@ export class GameScene extends Phaser.Scene {
         console.log('preloading');
         this.load.image('tileset', '/assets/tileMap/tilesheet.png');
         this.load.tilemapTiledJSON('map', '/assets/tileMap/MarsThePlanet.json');
+        // this.load.audio('background_music', ['assets/audio/bg.ogg', 'assets/audio/bg.ogg']);
     }
     public create() {
         const map = this.make.tilemap({key: 'map'});
@@ -25,6 +26,9 @@ export class GameScene extends Phaser.Scene {
         const ground = map.createStaticLayer('ground', tileset, 0, 0);
         const rocks = map.createStaticLayer('rocks', tileset, 0, 0);
         const camera = this.cameras.main;
+
+        // const music = this.sound.add('background_music');
+        // music.play();
 
         // Set up the arrows to control the camera
         const cursors = this.input.keyboard.createCursorKeys();
