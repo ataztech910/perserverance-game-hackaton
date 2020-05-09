@@ -22,6 +22,8 @@ export class GameScene extends Phaser.Scene {
         this.load.image('tileset', '/assets/tileMap/tilesheet.png');
         this.load.tilemapTiledJSON('map', '/assets/tileMap/MarsThePlanet.json');
         this.load.image('car','assets/car.png');
+        this.load.image('hp_bar','assets/bar/hb.png');
+        this.load.image('hp_bar2','assets/bar/hb_led.png');
         this.load.spritesheet('coin', 'assets/coins.png', { frameWidth: 32, frameHeight: 32 });
         this.load.audio('coin-sound', ['assets/audio/coin.wav', 'assets/audio/bg.ogg']);
     }
@@ -44,6 +46,10 @@ export class GameScene extends Phaser.Scene {
         this.car.setCollideWorldBounds(true);
 
         const camera = this.cameras.main;
+        const hp_bar = this.add.sprite(150, 50, 'hp_bar');
+        const hp_bar2 = this.add.sprite(150, 50, 'hp_bar2');
+        const text = this.add.text(30, 70, "Score: ", { font: "22px Arial", fill: "#000000", align: "center"});
+
         camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
         camera.startFollow(this.car);
         camera.roundPixels = true;
@@ -52,6 +58,10 @@ export class GameScene extends Phaser.Scene {
         // Set up the arrows to control the camera
         this.controls = this.input.keyboard.createCursorKeys();
 
+        //Fixed bar on display
+        hp_bar.setScrollFactor(0);
+        hp_bar2.setScrollFactor(0);
+        text.setScrollFactor(0);
         this.anims.create({
             key: 'spin',
             frames: this.anims.generateFrameNumbers('coin', { start: 0, end: 6 }),
