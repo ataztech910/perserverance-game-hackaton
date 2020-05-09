@@ -1,24 +1,22 @@
 import {GameScene} from "./scenes/game-scene";
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
-    title: 'Sample',
-   
+    title: 'Game Dev',
     type: Phaser.WEBGL,
-   
+    width: 800,
+    height: 600,
     scene: GameScene,
-
     scale: {
       width: window.innerWidth,
       height: window.innerHeight,
     },
-   
     physics: {
       default: 'arcade',
       arcade: {
-        debug: true,
+        debug: false,
+        gravity: { y: 0 }
       },
     },
-   
-    parent: 'game',
-    backgroundColor: '#fff',
+    parent: 'game-container',
+    backgroundColor: '#EBCAB3'
   };
