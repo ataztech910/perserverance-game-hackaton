@@ -45,6 +45,7 @@ export class GameScene extends Phaser.Scene {
         this.car = this.physics.add.sprite(571,105,'car');
         this.car.body.rotation = 1;
         this.car.setCollideWorldBounds(true);
+        this.car.tint = Math.random() * 0xffffff;
 
         const camera = this.cameras.main;
         camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
