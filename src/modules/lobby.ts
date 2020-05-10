@@ -10,7 +10,8 @@ class Lobby {
     }
 
     public start(nickname) {
-        const racing_server = process.env.RACING_SERVER || "localhost:8081";
+        // const racing_server = process.env.RACING_SERVER || "localhost:8081";
+        const racing_server = "https://mars-racing.herokuapp.com";
         console.log(`connecting to '${racing_server}'`);
 
         this.socket = io.connect(racing_server);
