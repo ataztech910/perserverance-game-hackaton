@@ -9,7 +9,7 @@ use npm install - to install all dependencies , use npm run dev - to start your 
 
 https://github.com/shatilov-diman \
 https://github.com/alexander-korolkov \
-https://github.com/loapits \
+https://github.com/loapits 
 
 We made not all tasks unfortunately and multiplayer fucked up
 But anyway here is a list of our great job that we did in previos 36 hours:
