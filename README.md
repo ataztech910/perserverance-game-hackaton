@@ -34,6 +34,7 @@ But anyway here is a list of our great job that we did in previos 36 hours:
 13. Design game mechanics and game logic
 14. Connect socket server with client application
     - data arrived from users but unfortunatly we didnt make it move
-15. Had a lot of fun whole development time
+15. Random bonuses at map    
+16. Had a lot of fun whole development time
 
 ### Thanks again to all contributors. Meet you again in next time events
