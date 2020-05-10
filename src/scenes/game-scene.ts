@@ -43,18 +43,22 @@ export class GameScene extends Phaser.Scene {
 	})
 	lobby.on('buy', user => {
 		console.log('User gone', user)
-		this.cars[user.sid].destroy()
-		delete this.cars[user.sid]
+		if (user.sid in this.cars) {
+			this.cars[user.sid].destroy()
+			delete this.cars[user.sid]
+		}
 	})
 	lobby.on('msg', msg => {
 		switch (msg.type) {
 			case 'hello':
+				console.log(msg.sid)
 				const car = this.physics.add.sprite(571,105,'car');
 				car.setCollideWorldBounds(true);
 				car.tint = Math.random() * 0xffffff;
 				this.cars[msg.sid] = car
 				break;
 			case 'moved':
+				console.log(msg.sid)
 				if (msg.sid in this.cars) {
 					const car = this.cars[msg.sid]
 					car.body.tint = msg.tint
@@ -69,6 +73,12 @@ export class GameScene extends Phaser.Scene {
 	})
 	lobby.on('users', users => {
 		console.log(users)
+		for (const sid in Object.keys(users)) {
+			const car = this.physics.add.sprite(571,105,'car');
+			car.setCollideWorldBounds(true);
+			car.tint = Math.random() * 0xffffff;
+			this.cars[sid] = car
+		}
 	})
 
 	setInterval(() => {
