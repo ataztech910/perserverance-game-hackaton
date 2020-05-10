@@ -15,7 +15,10 @@ export class GameScene extends Phaser.Scene {
     coins = null;
     coinsSound = null;
     userState: UserState;
+    muteFlag = false;
+    muteButton = null;
     score = null;
+  
     constructor() {
         super(sceneConfig);
     }
@@ -25,6 +28,9 @@ export class GameScene extends Phaser.Scene {
         this.load.image('car','assets/rover.png');
         this.load.spritesheet('coin', 'assets/coins.png', { frameWidth: 32, frameHeight: 32 });
         this.load.audio('coin-sound', ['assets/audio/coin.wav', 'assets/audio/bg.ogg']);
+        this.load.image('mute_button','assets/imgs/mute.png');
+        this.load.image('unmute_button','assets/imgs/unmute.png');
+        this.load.audio('background_music', ['assets/audio/bg.ogg', 'assets/audio/bg.ogg']);
     }
     public create() {
         this.userState = {
@@ -70,10 +76,27 @@ export class GameScene extends Phaser.Scene {
         this.coins.forEach(coin => {
             this.physics.world.enable(coin);
         })
-       this.coinsSound = this.sound.add('coin-sound');
 
-       this.score = this.add.text(30, 40, `SCORE: 0`, { font: "22px Arial", fill: "#145887", align: "center"});
-       this.score.setScrollFactor(0);
+        this.coinsSound = this.sound.add('coin-sound');
+
+        this.score = this.add.text(30, 40, `SCORE: 0`, { font: "22px Arial", fill: "#145887", align: "center"});
+        this.score.setScrollFactor(0);      
+      
+        const music = this.sound.add('background_music');
+        music.play();
+        this.muteButton = this.add.image(25, 25, 'mute_button').setInteractive()
+            .on('pointerdown', () => this.updateMuteFlag());
+        this.muteButton.setScrollFactor(0);
+    }
+
+    updateMuteFlag() {
+        if(this.muteFlag) {
+            this.muteButton.setTexture('mute_button');
+        } else {
+            this.muteButton.setTexture('unmute_button');
+        }
+        this.muteFlag = !this.muteFlag;
+        this.sound.mute = this.muteFlag;
     }
 
     hitTheCoin(player, coin) {
