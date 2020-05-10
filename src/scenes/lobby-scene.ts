@@ -17,6 +17,19 @@ function getUid() {
     return uid
 }
 
+function getNickname() {
+    var nickname = localStorage.getItem('nickname')
+    if (nickname == null) {
+        nickname = 'dmitry'
+        localStorage.setItem('nickname', nickname)
+    }
+    return nickname
+}
+
+function genMatchName() {
+    return `${getNickname()}'s game`
+}
+
 const INDEX = 0;
 const NAME = 1;
 const NUMBER = 2;
@@ -113,7 +126,7 @@ export class LobbyScene extends Phaser.Scene {
 
     private onSignInClick() {
         console.log('onSignInClick', this.uid);
-        this.lobby.emit('sign-in', this.uid, 'dmitry', (welcome) => {
+        this.lobby.emit('sign-in', this.uid, getNickname(), (welcome) => {
             console.log(welcome);
             this.onNewClick();
         });
@@ -121,7 +134,7 @@ export class LobbyScene extends Phaser.Scene {
 
     private onNewClick() {
         const settings = {
-                name: 'dmitry\' match',
+                name: genMatchName(),
                 map: 'random',
                 players: 4,
         }
