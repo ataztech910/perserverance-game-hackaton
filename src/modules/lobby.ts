@@ -21,6 +21,9 @@ class Lobby {
                 nickname: nickname,
             })
         });
+        this.socket.on('hi', (sid) => {
+            this.trigger('hi', sid)
+        });
         this.socket.on('buy', (msg) => {
             this.trigger('buy', msg)
             delete this.players[msg.sid]

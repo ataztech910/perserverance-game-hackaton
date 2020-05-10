@@ -12,6 +12,7 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
 export class GameScene extends Phaser.Scene {
     controls = null;
     velocity = 0;
+    sid = null
     car = null;
     cars = {}
     forwardPressed = false;
@@ -38,6 +39,9 @@ export class GameScene extends Phaser.Scene {
     }
     public create() {
 	lobby.start('dmitry')
+	lobby.on('hi', sid => {
+		this.sid = sid
+	})
 	lobby.on('hello', user => {
 		console.log('User come', user)
 	})
@@ -73,7 +77,7 @@ export class GameScene extends Phaser.Scene {
 	})
 	lobby.on('users', users => {
 		console.log(users)
-		for (const sid in Object.keys(users)) {
+		for (const sid in Object.keys(users).filter(sid => sid != this.sid)) {
 			const car = this.physics.add.sprite(571,105,'car');
 			car.setCollideWorldBounds(true);
 			car.tint = Math.random() * 0xffffff;
