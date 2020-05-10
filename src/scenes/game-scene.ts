@@ -5,7 +5,7 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     visible: true,
     key: 'GameScene'
 };
-  
+
 export class GameScene extends Phaser.Scene {
     controls = null;
     velocity = 0;
@@ -15,7 +15,7 @@ export class GameScene extends Phaser.Scene {
     coins = null;
     coinsSound = null;
     userState: UserState;
-
+    score = null;
     constructor() {
         super(sceneConfig);
     }
@@ -48,8 +48,6 @@ export class GameScene extends Phaser.Scene {
         this.car.tint = Math.random() * 0xffffff;
 
         const camera = this.cameras.main;
-        const text = this.add.text(30, 40, "Score: ", { font: "22px Arial", fill: "#000000", align: "center"});
-
         camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
         camera.startFollow(this.car);
         camera.roundPixels = true;
@@ -59,7 +57,7 @@ export class GameScene extends Phaser.Scene {
         this.controls = this.input.keyboard.createCursorKeys();
 
         //Fixed bar on display
-        text.setScrollFactor(0);
+
         this.anims.create({
             key: 'spin',
             frames: this.anims.generateFrameNumbers('coin', { start: 0, end: 6 }),
@@ -73,6 +71,9 @@ export class GameScene extends Phaser.Scene {
             this.physics.world.enable(coin);
         })
        this.coinsSound = this.sound.add('coin-sound');
+
+       this.score = this.add.text(30, 40, `SCORE: 0`, { font: "22px Arial", fill: "#145887", align: "center"});
+       this.score.setScrollFactor(0);
     }
 
     hitTheCoin(player, coin) {
@@ -84,6 +85,7 @@ export class GameScene extends Phaser.Scene {
         return direction ? this.velocity * Math.cos((this.car.angle - 90) * 0.01745) : this.velocity * Math.sin((this.car.angle - 90) * 0.01745);
     }
     public update(time, delta) {
+        this.score.setText(`SCORE: ${this.userState.coins}`);
         this.physics.collide(this.car, this.coins, this.hitTheCoin, null, this);
         /*Update Velocity*/
         if(this.velocity <= 0) {
