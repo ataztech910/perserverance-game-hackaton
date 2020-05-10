@@ -135,7 +135,9 @@ export class GameScene extends Phaser.Scene {
     hitTheCoin(player, coin) {
         this.coinsSound.play();
         this.userState.coins ++;
-        coin.destroy();
+        
+        coin.setPosition(coin.x + Math.floor(Math.random() * this.scale.gameSize.width - coin.x), coin.y + Math.floor(Math.random() * (this.scale.gameSize.height - coin.y) ));
+        coin.body.stop();
     }
     calculateVelocity(direction) {
         return direction ? this.velocity * Math.cos((this.car.angle - 90) * 0.01745) : this.velocity * Math.sin((this.car.angle - 90) * 0.01745);
