@@ -1,6 +1,9 @@
 import { Label, GridTable, RoundRectangle } from 'phaser3-rex-plugins/templates/ui/ui-components.js';
-import * as io from 'socket.io-client';
 import { v4 } from 'uuid';
+
+import { getLobby } from '../modules/lobby';
+
+const lobby = getLobby();
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     active: true,
@@ -41,12 +44,8 @@ const LEAVE = 6;
 export class LobbyScene extends Phaser.Scene {
     uid = getUid();
     socket = null;
-    lobby = null;
     title = null;
     table = null;
-
-    users = {}
-    matches = {}
 
     constructor() {
         super(sceneConfig);
@@ -55,81 +54,30 @@ export class LobbyScene extends Phaser.Scene {
         //const url = 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexgridtableplugin.min.js'
         //this.load.plugin('rexgridtableplugin', url, true);
 
-        this.loadLobby();
     }
     public create() {
         this.scene.setVisible(false);
 
         this.createTitle();
         this.createTable()
-    }
-    private loadLobby() {
-        console.log('connecting');
-        this.socket = io.connect("https://mars-racing.herokuapp.com");
-        this.lobby = io.connect("https://mars-racing.herokuapp.com/lobby");
-        this.lobby.on("connect", () => {
-            this.users = {};
-            this.matches = {};
-            console.log('on connect to lobby');
-            this.onSignInClick();
-        });
-	this.lobby.on('userEnter', (uid, user) => {
-		console.log('userEnter', uid, user);
-		this.users[uid] = user;
-	});
-	this.lobby.on('userLeave', (uid, user) => {
-		console.log('userLeave', uid, user);
-	});
 
-	this.lobby.on('matchAdd', (match) => {
-		console.log('matchAdd', match);
-		this.matches[match.id] = match;
-                this.updateMatch(match);
-	});
-
-	this.lobby.on('matchUpdated', (match) => {
-		console.log('matchUpdated', match);
-		this.matches[match.id] = match;
-                this.updateMatch(match);
-	});
-
-	this.lobby.on('matchJoined', (mid, uid) => {
-		console.log('matchJoined', mid, uid);
-		this.matches[mid].players[uid] = false;
-                this.updateMatch(this.matches[mid]);
-	});
-
-	this.lobby.on('matchReady', (mid, uid) => {
-		console.log('matchReady', mid, uid);
-		this.matches[mid].players[uid] = true;
-                this.updateMatch(this.matches[mid]);
-	});
-
-	this.lobby.on('matchLeaved', (mid, uid) => {
-		console.log('matchLeaved', mid, uid)
-		delete this.matches[mid].players[uid]
-                this.updateMatch(this.matches[mid]);
-	});
-
-	this.lobby.on('matchStarted', (mid) => {
-		console.log('matchStarted', mid);
-		this.matches[mid].status = 'playing';
-                this.updateMatch(this.matches[mid]);
-	});
-
-	this.lobby.on('matchFinished', (mid) => {
-		console.log('matchFinished', mid);
-                this.removeMatch(this.matches[mid]);
-		delete this.matches[mid];
-	});
+        lobby.on('connect',       ()              => this.onSignInClick())
+        lobby.on('signed-in',     ()              => this.onSignedIn())
+        lobby.on('matchAdd',      (match)         => this.updateMatch(match))
+        lobby.on('matchUpdated',  (match)         => this.updateMatch(match))
+        lobby.on('matchJoined',   ([match, user]) => this.updateMatch(match))
+        lobby.on('matchReady',    ([match, user]) => this.updateMatch(match))
+        lobby.on('matchLeaved',   ([match, user]) => this.updateMatch(match))
+        lobby.on('matchStarted',  (match)         => this.updateMatch(match))
+        lobby.on('matchFinished', (match)         => this.removeMatch(match))
     }
 
     private onSignInClick() {
-        console.log('onSignInClick', this.uid);
-        this.lobby.emit('sign-in', this.uid, getNickname(), (welcome) => {
-            console.log(welcome);
-            this.onNewClick();
-        });
+        lobby.signIn(this.uid, getNickname());
+    }
+
+    private onSignedIn() {
+        console.log('signed-in');
     }
 
     private onNewClick() {
@@ -138,32 +86,19 @@ export class LobbyScene extends Phaser.Scene {
                 map: 'random',
                 players: 4,
         }
-
-        console.log('matchNew', settings);
-        this.lobby.emit('matchNew', settings, (result) => {
-            console.log(result)
-        })
+        lobby.createNewGame(settings);
     }
 
     private onJoinClick(mid) {
-        console.log('matchJoin', mid);
-	this.lobby.emit('matchJoin', mid, (result) => {
-            console.log(result)
-	})
+        lobby.joinGame(mid);
     }
 
     private onReadyClick(mid) {
-        console.log('matchReady', mid);
-	this.lobby.emit('matchReady', mid, (result) => {
-            console.log(result)
-	})
+        lobby.readyToPlay(mid);
     }
 
     private onLeaveClick(mid) {
-        console.log('matchLeave', mid);
-	this.lobby.emit('matchLeave', mid, (result) => {
-            console.log(result)
-	})
+        lobby.leaveGame(mid);
     }
 
     private createTitle() {
@@ -207,12 +142,16 @@ export class LobbyScene extends Phaser.Scene {
     private updateMatch(match) {
         var found = false;
 
-        const number = Object.keys(match.players).length + '/' + match.settings.players;
-        const players = Object.keys(match.players).map(uid => this.users[uid].nickname).join(', ');
+        const joined_mid = lobby.getUser(this.uid).mid
 
-        const join_ready_text = this.uid in match.players ? "Ready" : "Join";
-        const leave_type = this.uid in match.players ? "button" : "item";
-        const leave_text = this.uid in match.players ? "Leave" : "";
+        const number = Object.keys(match.players).length + '/' + match.settings.players;
+        const players = Object.keys(match.players).map(uid => lobby.getUser(uid)).map(user => user == null ? '--' : user.nickname).join(', ');
+
+        const join_ready_type = joined_mid == null ? "button" : joined_mid == match.id ? "button" : "item";
+        const join_ready_text = joined_mid == null ? "Join" : joined_mid == match.id ? "Ready" : "";
+
+        const leave_type = joined_mid == match.id ? "button" : "item";
+        const leave_text = joined_mid == match.id ? "Leave" : "";
         const mid = match.id;
 
         const on_join_ready_click = () => {
@@ -243,6 +182,7 @@ export class LobbyScene extends Phaser.Scene {
                     item.text = match.status;
                     break;
                 case ACTION:
+                    item.type = join_ready_type;
                     item.text = join_ready_text;
                     break;
                 case LEAVE:
@@ -252,13 +192,13 @@ export class LobbyScene extends Phaser.Scene {
             }
         }
         if (!found) {
-            this.table.items.push({key: match.id, type: 'item',     subtype: INDEX,   text: match.id});
-            this.table.items.push({key: match.id, type: 'item',     subtype: NAME,    text: match.name});
-            this.table.items.push({key: match.id, type: 'item',     subtype: NUMBER,  text: number});
-            this.table.items.push({key: match.id, type: 'item',     subtype: PLAYERS, text: players});
-            this.table.items.push({key: match.id, type: 'item',     subtype: STATUS,  text: match.status});
-            this.table.items.push({key: match.id, type: 'button',   subtype: ACTION,  text: join_ready_text, click: on_join_ready_click});
-            this.table.items.push({key: match.id, type: leave_type, subtype: LEAVE,   text: leave_text, click: on_leave_click});
+            this.table.items.push({key: match.id, type: 'item',           subtype: INDEX,   text: match.id});
+            this.table.items.push({key: match.id, type: 'item',           subtype: NAME,    text: match.name});
+            this.table.items.push({key: match.id, type: 'item',           subtype: NUMBER,  text: number});
+            this.table.items.push({key: match.id, type: 'item',           subtype: PLAYERS, text: players});
+            this.table.items.push({key: match.id, type: 'item',           subtype: STATUS,  text: match.status});
+            this.table.items.push({key: match.id, type: join_ready_type,  subtype: ACTION,  text: join_ready_text, click: on_join_ready_click});
+            this.table.items.push({key: match.id, type: leave_type,       subtype: LEAVE,   text: leave_text,      click: on_leave_click});
         }
         this.table.refresh();
     }
