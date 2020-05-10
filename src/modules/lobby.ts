@@ -28,10 +28,8 @@ class Lobby {
         this.socket.on('broadcast', (msg) => {
             if (msg.type === 'hello') {
                 this.players[msg.sid] = msg
-                this.trigger('hello', msg)
-            } else {
-                this.trigger('msg', msg)
             }
+            this.trigger('msg', msg)
         });
         this.socket.emit('users', (users) => {
             this.trigger('users', users)
