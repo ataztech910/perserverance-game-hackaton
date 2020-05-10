@@ -5,7 +5,7 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
     visible: true,
     key: 'GameScene'
 };
-  
+
 export class GameScene extends Phaser.Scene {
     controls = null;
     velocity = 0;
@@ -17,7 +17,8 @@ export class GameScene extends Phaser.Scene {
     userState: UserState;
     muteFlag = false;
     muteButton = null;
-
+    score = null;
+  
     constructor() {
         super(sceneConfig);
     }
@@ -61,6 +62,8 @@ export class GameScene extends Phaser.Scene {
         // Set up the arrows to control the camera
         this.controls = this.input.keyboard.createCursorKeys();
 
+        //Fixed bar on display
+
         this.anims.create({
             key: 'spin',
             frames: this.anims.generateFrameNumbers('coin', { start: 0, end: 6 }),
@@ -73,7 +76,12 @@ export class GameScene extends Phaser.Scene {
         this.coins.forEach(coin => {
             this.physics.world.enable(coin);
         })
+
         this.coinsSound = this.sound.add('coin-sound');
+
+        this.score = this.add.text(30, 40, `SCORE: 0`, { font: "22px Arial", fill: "#145887", align: "center"});
+        this.score.setScrollFactor(0);      
+      
         const music = this.sound.add('background_music');
         music.play();
         this.muteButton = this.add.image(25, 25, 'mute_button').setInteractive()
@@ -100,6 +108,7 @@ export class GameScene extends Phaser.Scene {
         return direction ? this.velocity * Math.cos((this.car.angle - 90) * 0.01745) : this.velocity * Math.sin((this.car.angle - 90) * 0.01745);
     }
     public update(time, delta) {
+        this.score.setText(`SCORE: ${this.userState.coins}`);
         this.physics.collide(this.car, this.coins, this.hitTheCoin, null, this);
         /*Update Velocity*/
         if(this.velocity <= 0) {
@@ -120,6 +129,7 @@ export class GameScene extends Phaser.Scene {
             this.backPressed = true;
         }
         /*Set X and Y Speed of Velocity*/
+
         this.car.body.velocity.x = this.calculateVelocity(true);
         this.car.body.velocity.y = this.calculateVelocity(false);
 
