@@ -36,19 +36,19 @@ export class GameScene extends Phaser.Scene {
         this.load.audio('background_music', ['assets/audio/bg.ogg', 'assets/audio/bg.ogg']);
     }
     public create() {
-	lobby.start('dmitry')
-	lobby.on('hello', user => {
-		console.log('User come', user)
-	})
-	lobby.on('buy', user => {
-		console.log('User gone', user)
-	})
-	lobby.on('broadcast', msg => {
-		console.log(msg)
-	})
-	lobby.on('users', users => {
-		console.log(users)
-	})
+        lobby.start('dmitry')
+        lobby.on('hello', user => {
+            console.log('User come', user)
+        })
+        lobby.on('buy', user => {
+            console.log('User gone', user)
+        })
+        lobby.on('broadcast', msg => {
+            console.log(msg)
+        })
+        lobby.on('users', users => {
+            console.log(users)
+        });
 
         this.userState = {
             coins: 0,
