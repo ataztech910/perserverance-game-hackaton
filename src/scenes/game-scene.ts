@@ -87,6 +87,8 @@ export class GameScene extends Phaser.Scene {
         this.muteButton = this.add.image(25, 25, 'mute_button').setInteractive()
             .on('pointerdown', () => this.updateMuteFlag());
         this.muteButton.setScrollFactor(0);
+
+        this.registerMenuByEsc()
     }
 
     updateMuteFlag() {
@@ -97,6 +99,20 @@ export class GameScene extends Phaser.Scene {
         }
         this.muteFlag = !this.muteFlag;
         this.sound.mute = this.muteFlag;
+    }
+
+    registerMenuByEsc() {
+       this
+       .input
+       .keyboard
+       .on('keydown_ESC', (event) => {
+           console.log('ESC')
+	   const visible = this.scene.isVisible('MenuScene')
+	   this.scene.setVisible(!visible, 'MenuScene');
+
+	   this.scene.setVisible(false, 'LobbyScene');
+	   this.scene.setVisible(false, 'AboutScene');
+       });
     }
 
     hitTheCoin(player, coin) {
