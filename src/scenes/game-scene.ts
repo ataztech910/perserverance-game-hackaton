@@ -15,6 +15,7 @@ export class GameScene extends Phaser.Scene {
     sid = null
     car = null;
     cars = {}
+    carsNet = {}
     forwardPressed = false;
     backPressed = false;
     coins = null;
@@ -40,6 +41,7 @@ export class GameScene extends Phaser.Scene {
     public create() {
 	lobby.start('dmitry')
 	lobby.on('hi', sid => {
+		console.log('my sid: ', sid)
 		this.sid = sid
 	})
 	lobby.on('hello', user => {
@@ -50,52 +52,32 @@ export class GameScene extends Phaser.Scene {
 		if (user.sid in this.cars) {
 			this.cars[user.sid].destroy()
 			delete this.cars[user.sid]
+			delete this.carsNet[user.sid]
 		}
 	})
 	lobby.on('msg', msg => {
 		switch (msg.type) {
 			case 'hello':
-				console.log(msg.sid)
-				const car = this.physics.add.sprite(571,105,'car');
-				car.setCollideWorldBounds(true);
-				car.tint = Math.random() * 0xffffff;
-				this.cars[msg.sid] = car
 				break;
 			case 'moved':
-				console.log(msg.sid)
-				if (msg.sid in this.cars) {
-					const car = this.cars[msg.sid]
-					car.body.tint = msg.tint
-					car.body.x = msg.x
-					car.body.y = msg.y
-					car.body.rotation = msg.rotation
-					car.body.velocity.x = msg.vx
-					car.body.velocity.y = msg.vy
-				}
+				this.carsNet[msg.sid] = msg
 				break;
 		}
 	})
 	lobby.on('users', users => {
-		console.log(users)
-		for (const sid in Object.keys(users).filter(sid => sid != this.sid)) {
-			const car = this.physics.add.sprite(571,105,'car');
-			car.setCollideWorldBounds(true);
-			car.tint = Math.random() * 0xffffff;
-			this.cars[sid] = car
-		}
 	})
 
 	setInterval(() => {
 		lobby.send({
 			type: 'moved',
 			tint: this.car.tint,
-			x: this.car.body.x,
-			y: this.car.body.y,
-			r: this.car.body.rotation,
+			x: this.car.x,
+			y: this.car.y,
+			r: this.car.rotation,
 			cx: this.car.body.velocity.x,
 			cy: this.car.body.velocity.y,
 		})
-	}, 500)
+	}, 100)
 
         this.userState = {
             coins: 0,
@@ -113,7 +95,7 @@ export class GameScene extends Phaser.Scene {
         this.physics.world.bounds.height = map.heightInPixels;
 
         this.car = this.physics.add.sprite(571,105,'car');
-        this.car.body.rotation = 1;
+        this.car.body.rotation = 0;
         this.car.setCollideWorldBounds(true);
         this.car.tint = Math.random() * 0xffffff;
 
@@ -207,6 +189,22 @@ export class GameScene extends Phaser.Scene {
         else{
             this.car.body.angularVelocity = 0;
         }
+
+	for (const sid of Object.keys(this.carsNet)) {
+		const carNet = this.carsNet[sid]
+		if ( ! (sid in this.cars)) {
+			console.log('add car for sid: ', sid)
+			const car = this.add.sprite(571,105,'car');
+			//car.setCollideWorldBounds(true);
+			car.tint = carNet.tint
+			this.cars[sid] = car
+		}
+		const car = this.cars[sid]
+		//this.physics.moveToObject(car, carNet, 500)
+		car.x = carNet.x
+		car.y = carNet.y
+		car.rotation = carNet.r
+	}
     }
 
 
