@@ -7,9 +7,9 @@ use npm install - to install all dependencies , use npm run dev - to start your 
 
 ### Thanks to all contributors who have fighted brave to finish all our hard task =)
 
-https://github.com/shatilov-diman
-https://github.com/alexander-korolkov
-https://github.com/loapits
+https://github.com/shatilov-diman \
+https://github.com/alexander-korolkov \
+https://github.com/loapits \
 
 We made not all tasks unfortunately and multiplayer fucked up
 But anyway here is a list of our great job that we did in previos 36 hours:
