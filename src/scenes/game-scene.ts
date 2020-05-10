@@ -15,13 +15,14 @@ export class GameScene extends Phaser.Scene {
     coins = null;
     coinsSound = null;
     userState: UserState;
+
     constructor() {
         super(sceneConfig);
     }
     public preload() {
         this.load.image('tileset', '/assets/tileMap/tilesheet.png');
         this.load.tilemapTiledJSON('map', '/assets/tileMap/MarsThePlanet.json');
-        this.load.image('car','assets/car.png');
+        this.load.image('car','assets/rover.png');
         this.load.spritesheet('coin', 'assets/coins.png', { frameWidth: 32, frameHeight: 32 });
         this.load.audio('coin-sound', ['assets/audio/coin.wav', 'assets/audio/bg.ogg']);
     }
@@ -35,13 +36,16 @@ export class GameScene extends Phaser.Scene {
         const tileset = map.addTilesetImage('tileset', 'tileset');
         const ground = map.createStaticLayer('ground', tileset, 0, 0);
         const rocks = map.createStaticLayer('rocks', tileset, 0, 0);
+        const road = map.createStaticLayer('road', tileset, 0, 0);
         rocks.setCollisionByExclusion([-1]);
 
         this.physics.world.bounds.width = map.widthInPixels;
         this.physics.world.bounds.height = map.heightInPixels;
-        this.car = this.physics.add.sprite(570,100,'car');
+
+        this.car = this.physics.add.sprite(571,105,'car');
         this.car.body.rotation = 1;
         this.car.setCollideWorldBounds(true);
+        this.car.tint = Math.random() * 0xffffff;
 
         const camera = this.cameras.main;
         const text = this.add.text(30, 40, "Score: ", { font: "22px Arial", fill: "#000000", align: "center"});
@@ -72,13 +76,13 @@ export class GameScene extends Phaser.Scene {
     }
 
     hitTheCoin(player, coin) {
-        console.log({player, coin});
         this.coinsSound.play();
         this.userState.coins ++;
         coin.destroy();
-        console.log(this.userState);
     }
-
+    calculateVelocity(direction) {
+        return direction ? this.velocity * Math.cos((this.car.angle - 90) * 0.01745) : this.velocity * Math.sin((this.car.angle - 90) * 0.01745);
+    }
     public update(time, delta) {
         this.physics.collide(this.car, this.coins, this.hitTheCoin, null, this);
         /*Update Velocity*/
@@ -100,8 +104,10 @@ export class GameScene extends Phaser.Scene {
             this.backPressed = true;
         }
         /*Set X and Y Speed of Velocity*/
-        this.car.body.velocity.x = this.velocity * Math.cos((this.car.angle) * 0.01745);
-        this.car.body.velocity.y = this.velocity * Math.sin((this.car.angle) * 0.01745);
+
+        this.car.body.velocity.x = this.calculateVelocity(true);
+        this.car.body.velocity.y = this.calculateVelocity(false);
+
         /*Rotation of Car*/
         if (this.controls.left.isDown) {
             this.car.body.angularVelocity = -5 * (this.velocity / 10);
