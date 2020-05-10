@@ -37,61 +37,7 @@ export class GameScene extends Phaser.Scene {
         this.load.audio('background_music', ['assets/audio/bg.ogg', 'assets/audio/bg.ogg']);
     }
     public create() {
-	lobby.start('dmitry')
-	lobby.on('hello', user => {
-		console.log('User come', user)
-	})
-	lobby.on('buy', user => {
-		console.log('User gone', user)
-		if (user.sid in this.cars) {
-			this.cars[user.sid].destroy()
-			delete this.cars[user.sid]
-		}
-	})
-	lobby.on('msg', msg => {
-		switch (msg.type) {
-			case 'hello':
-				console.log(msg.sid)
-				const car = this.physics.add.sprite(571,105,'car');
-				car.setCollideWorldBounds(true);
-				car.tint = Math.random() * 0xffffff;
-				this.cars[msg.sid] = car
-				break;
-			case 'moved':
-				console.log(msg.sid)
-				if (msg.sid in this.cars) {
-					const car = this.cars[msg.sid]
-					car.body.tint = msg.tint
-					car.body.x = msg.x
-					car.body.y = msg.y
-					car.body.rotation = msg.rotation
-					car.body.velocity.x = msg.vx
-					car.body.velocity.y = msg.vy
-				}
-				break;
-		}
-	})
-	lobby.on('users', users => {
-		console.log(users)
-		for (const sid in Object.keys(users)) {
-			const car = this.physics.add.sprite(571,105,'car');
-			car.setCollideWorldBounds(true);
-			car.tint = Math.random() * 0xffffff;
-			this.cars[sid] = car
-		}
-	})
 
-	setInterval(() => {
-		lobby.send({
-			type: 'moved',
-			tint: this.car.tint,
-			x: this.car.body.x,
-			y: this.car.body.y,
-			r: this.car.body.rotation,
-			cx: this.car.body.velocity.x,
-			cy: this.car.body.velocity.y,
-		})
-	}, 500)
 
         this.userState = {
             coins: 0,
@@ -147,6 +93,58 @@ export class GameScene extends Phaser.Scene {
         this.muteButton = this.add.image(25, 25, 'mute_button').setInteractive()
             .on('pointerdown', () => this.updateMuteFlag());
         this.muteButton.setScrollFactor(0);
+
+
+        lobby.start('dmitry')
+        lobby.on('hello', user => {
+            console.log('User come', user)
+        })
+        lobby.on('buy', user => {
+            console.log('User gone', user)
+            if (user.sid in this.cars) {
+                this.cars[user.sid].destroy()
+                delete this.cars[user.sid]
+            }
+        })
+        lobby.on('msg', msg => {
+            switch (msg.type) {
+                case 'hello':
+                    console.log(msg);
+                    const car = this.physics.add.sprite(571,105,'car');
+                    car.setCollideWorldBounds(true);
+                    car.tint = Math.random() * 0xffffff;
+                    if(msg.sid !== 1) this.cars[msg.sid] = car
+                    break;
+                case 'moved':
+                    if (msg.sid in this.cars) {
+                        this.cars[msg.sid].setAngle(msg.r);
+                        this.cars[msg.sid].setPosition(msg.x, msg.y);
+                    }
+                    break;
+            }
+        })
+        lobby.on('users', users => {
+            for (const sid in Object.keys(users)) {
+                const car = this.physics.add.sprite(571,105,'car');
+                car.setCollideWorldBounds(true);
+                car.tint = Math.random() * 0xffffff;
+                this.cars[sid] = car
+            }
+        })
+
+        setInterval(() => {
+            // lobby.send({
+            //     type: 'moved',
+            //     tint: this.car.tint,
+            //     x: this.car.body.x,
+            //     y: this.car.body.y,
+            //     r: this.car.body.rotation,
+            //     cx: this.car.body.velocity.x,
+            //     cy: this.car.body.velocity.y,
+            // })
+        }, 500)
+
+
     }
 
     updateMuteFlag() {
@@ -203,6 +201,15 @@ export class GameScene extends Phaser.Scene {
         else{
             this.car.body.angularVelocity = 0;
         }
+        lobby.send({
+            type: 'moved',
+            tint: this.car.tint,
+            x: this.car.body.x,
+            y: this.car.body.y,
+            r: this.car.body.rotation,
+            cx: this.car.body.velocity.x,
+            cy: this.car.body.velocity.y,
+        })
     }
 
 
