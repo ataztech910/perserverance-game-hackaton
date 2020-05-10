@@ -12,7 +12,10 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
 export class GameScene extends Phaser.Scene {
     controls = null;
     velocity = 0;
+    sid = null
     car = null;
+    cars = {}
+    carsNet = {}
     forwardPressed = false;
     backPressed = false;
     coins = null;
@@ -36,19 +39,45 @@ export class GameScene extends Phaser.Scene {
         this.load.audio('background_music', ['assets/audio/bg.ogg', 'assets/audio/bg.ogg']);
     }
     public create() {
-        lobby.start('dmitry')
-        lobby.on('hello', user => {
-            console.log('User come', user)
-        })
-        lobby.on('buy', user => {
-            console.log('User gone', user)
-        })
-        lobby.on('broadcast', msg => {
-            console.log(msg)
-        })
-        lobby.on('users', users => {
-            console.log(users)
-        });
+	lobby.start('dmitry')
+	lobby.on('hi', sid => {
+		console.log('my sid: ', sid)
+		this.sid = sid
+	})
+	lobby.on('hello', user => {
+		console.log('User come', user)
+	})
+	lobby.on('buy', user => {
+		console.log('User gone', user)
+		if (user.sid in this.cars) {
+			this.cars[user.sid].destroy()
+			delete this.cars[user.sid]
+			delete this.carsNet[user.sid]
+		}
+	})
+	lobby.on('msg', msg => {
+		switch (msg.type) {
+			case 'hello':
+				break;
+			case 'moved':
+				this.carsNet[msg.sid] = msg
+				break;
+		}
+	})
+	lobby.on('users', users => {
+	})
+
+	setInterval(() => {
+		lobby.send({
+			type: 'moved',
+			tint: this.car.tint,
+			x: this.car.x,
+			y: this.car.y,
+			r: this.car.rotation,
+			cx: this.car.body.velocity.x,
+			cy: this.car.body.velocity.y,
+		})
+	}, 100)
 
         this.userState = {
             coins: 0,
@@ -66,7 +95,7 @@ export class GameScene extends Phaser.Scene {
         this.physics.world.bounds.height = map.heightInPixels;
 
         this.car = this.physics.add.sprite(571,105,'car');
-        this.car.body.rotation = 1;
+        this.car.body.rotation = 0;
         this.car.setCollideWorldBounds(true);
         this.car.tint = Math.random() * 0xffffff;
 
@@ -104,8 +133,6 @@ export class GameScene extends Phaser.Scene {
         this.muteButton = this.add.image(25, 25, 'mute_button').setInteractive()
             .on('pointerdown', () => this.updateMuteFlag());
         this.muteButton.setScrollFactor(0);
-
-        this.registerMenuByEsc()
     }
 
     updateMuteFlag() {
@@ -116,20 +143,6 @@ export class GameScene extends Phaser.Scene {
         }
         this.muteFlag = !this.muteFlag;
         this.sound.mute = this.muteFlag;
-    }
-
-    registerMenuByEsc() {
-       this
-       .input
-       .keyboard
-       .on('keydown_ESC', (event) => {
-           console.log('ESC')
-	   const visible = this.scene.isVisible('MenuScene')
-	   this.scene.setVisible(!visible, 'MenuScene');
-
-	   this.scene.setVisible(false, 'LobbyScene');
-	   this.scene.setVisible(false, 'AboutScene');
-       });
     }
 
     hitTheCoin(player, coin) {
@@ -179,6 +192,21 @@ export class GameScene extends Phaser.Scene {
             this.car.body.angularVelocity = 0;
         }
 
+	for (const sid of Object.keys(this.carsNet)) {
+		const carNet = this.carsNet[sid]
+		if ( ! (sid in this.cars)) {
+			console.log('add car for sid: ', sid)
+			const car = this.add.sprite(571,105,'car');
+			//car.setCollideWorldBounds(true);
+			car.tint = carNet.tint
+			this.cars[sid] = car
+		}
+		const car = this.cars[sid]
+		//this.physics.moveToObject(car, carNet, 500)
+		car.x = carNet.x
+		car.y = carNet.y
+		car.rotation = carNet.r
+	}
     }
 
 

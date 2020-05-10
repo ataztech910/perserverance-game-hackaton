@@ -10,7 +10,7 @@ class Lobby {
     }
 
     public start(nickname) {
-        // const racing_server = process.env.RACING_SERVER || "localhost:8081";
+        //const racing_server = "localhost:8081";
         const racing_server = "https://mars-racing.herokuapp.com";
         console.log(`connecting to '${racing_server}'`);
 
@@ -21,6 +21,12 @@ class Lobby {
                 nickname: nickname,
             })
         });
+        this.socket.on('hi', (sid) => {
+            this.trigger('hi', sid)
+            this.socket.emit('users', (users) => {
+                this.trigger('users', users)
+            });
+        });
         this.socket.on('buy', (msg) => {
             this.trigger('buy', msg)
             delete this.players[msg.sid]
@@ -28,13 +34,8 @@ class Lobby {
         this.socket.on('broadcast', (msg) => {
             if (msg.type === 'hello') {
                 this.players[msg.sid] = msg
-                this.trigger('hello', msg)
-            } else {
-                this.trigger('msg', msg)
             }
-        });
-        this.socket.emit('users', (users) => {
-            this.trigger('users', users)
+            this.trigger('msg', msg)
         });
     }
 
