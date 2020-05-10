@@ -13,6 +13,7 @@ export class GameScene extends Phaser.Scene {
     controls = null;
     velocity = 0;
     car = null;
+    cars = {}
     forwardPressed = false;
     backPressed = false;
     coins = null;
@@ -36,19 +37,51 @@ export class GameScene extends Phaser.Scene {
         this.load.audio('background_music', ['assets/audio/bg.ogg', 'assets/audio/bg.ogg']);
     }
     public create() {
-        lobby.start('dmitry')
-        lobby.on('hello', user => {
-            console.log('User come', user)
-        })
-        lobby.on('buy', user => {
-            console.log('User gone', user)
-        })
-        lobby.on('broadcast', msg => {
-            console.log(msg)
-        })
-        lobby.on('users', users => {
-            console.log(users)
-        });
+	lobby.start('dmitry')
+	lobby.on('hello', user => {
+		console.log('User come', user)
+	})
+	lobby.on('buy', user => {
+		console.log('User gone', user)
+		this.cars[user.sid].destroy()
+		delete this.cars[user.sid]
+	})
+	lobby.on('msg', msg => {
+		switch (msg.type) {
+			case 'hello':
+				const car = this.physics.add.sprite(571,105,'car');
+				car.setCollideWorldBounds(true);
+				car.tint = Math.random() * 0xffffff;
+				this.cars[msg.sid] = car
+				break;
+			case 'moved':
+				if (msg.sid in this.cars) {
+					const car = this.cars[msg.sid]
+					car.body.tint = msg.tint
+					car.body.x = msg.x
+					car.body.y = msg.y
+					car.body.rotation = msg.rotation
+					car.body.velocity.x = msg.vx
+					car.body.velocity.y = msg.vy
+				}
+				break;
+		}
+	})
+	lobby.on('users', users => {
+		console.log(users)
+	})
+
+	setInterval(() => {
+		lobby.send({
+			type: 'moved',
+			tint: this.car.tint,
+			x: this.car.body.x,
+			y: this.car.body.y,
+			r: this.car.body.rotation,
+			cx: this.car.body.velocity.x,
+			cy: this.car.body.velocity.y,
+		})
+	}, 500)
 
         this.userState = {
             coins: 0,
@@ -104,8 +137,6 @@ export class GameScene extends Phaser.Scene {
         this.muteButton = this.add.image(25, 25, 'mute_button').setInteractive()
             .on('pointerdown', () => this.updateMuteFlag());
         this.muteButton.setScrollFactor(0);
-
-        this.registerMenuByEsc()
     }
 
     updateMuteFlag() {
@@ -116,20 +147,6 @@ export class GameScene extends Phaser.Scene {
         }
         this.muteFlag = !this.muteFlag;
         this.sound.mute = this.muteFlag;
-    }
-
-    registerMenuByEsc() {
-       this
-       .input
-       .keyboard
-       .on('keydown_ESC', (event) => {
-           console.log('ESC')
-	   const visible = this.scene.isVisible('MenuScene')
-	   this.scene.setVisible(!visible, 'MenuScene');
-
-	   this.scene.setVisible(false, 'LobbyScene');
-	   this.scene.setVisible(false, 'AboutScene');
-       });
     }
 
     hitTheCoin(player, coin) {
@@ -176,7 +193,6 @@ export class GameScene extends Phaser.Scene {
         else{
             this.car.body.angularVelocity = 0;
         }
-
     }
 
 
