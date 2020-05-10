@@ -48,6 +48,8 @@ export class GameScene extends Phaser.Scene {
         this.car.tint = Math.random() * 0xffffff;
 
         const camera = this.cameras.main;
+        const text = this.add.text(30, 40, "Score: ", { font: "22px Arial", fill: "#000000", align: "center"});
+
         camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
         camera.startFollow(this.car);
         camera.roundPixels = true;
@@ -56,6 +58,8 @@ export class GameScene extends Phaser.Scene {
         // Set up the arrows to control the camera
         this.controls = this.input.keyboard.createCursorKeys();
 
+        //Fixed bar on display
+        text.setScrollFactor(0);
         this.anims.create({
             key: 'spin',
             frames: this.anims.generateFrameNumbers('coin', { start: 0, end: 6 }),
@@ -100,6 +104,7 @@ export class GameScene extends Phaser.Scene {
             this.backPressed = true;
         }
         /*Set X and Y Speed of Velocity*/
+
         this.car.body.velocity.x = this.calculateVelocity(true);
         this.car.body.velocity.y = this.calculateVelocity(false);
 
