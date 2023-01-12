@@ -21,7 +21,7 @@
   "dependencies": {
     "@types/socket.io": "^2.1.4",
     "@types/uuid": "^7.0.3",
-    "phaser3-rex-plugins": "^1.1.14",
+    "phaser3-rex-plugins": "^1.1.79",
     "socket.io": "^2.3.0",
     "uuid": "^8.0.0",
     "webpack-dev-server": "^3.11.0"
